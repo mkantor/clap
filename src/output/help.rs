@@ -990,8 +990,6 @@ impl<'help, 'app, 'parser, 'writer> Help<'help, 'app, 'parser, 'writer> {
         }
 
         for part in parts {
-            self.none(part)?;
-
             tags! {
                 match part {
                     "bin" => {

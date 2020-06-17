@@ -1687,7 +1687,7 @@ fn help_required_but_not_given() {
     App::new("myapp")
         .setting(AppSettings::HelpRequired)
         .arg(Arg::new("foo"))
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[cfg(debug_assertions)]
@@ -1697,7 +1697,7 @@ fn help_required_but_not_given_settings_after_args() {
     App::new("myapp")
         .arg(Arg::new("foo"))
         .setting(AppSettings::HelpRequired)
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[cfg(debug_assertions)]
@@ -1708,7 +1708,7 @@ fn help_required_but_not_given_for_one_of_two_arguments() {
         .setting(AppSettings::HelpRequired)
         .arg(Arg::new("foo"))
         .arg(Arg::new("bar").about("It does bar stuff"))
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[test]
@@ -1721,7 +1721,7 @@ fn help_required_locally_but_not_given_for_subcommand() {
                 .arg(Arg::new("create").about("creates bar"))
                 .arg(Arg::new("delete")),
         )
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[cfg(debug_assertions)]
@@ -1736,7 +1736,7 @@ fn help_required_globally_but_not_given_for_subcommand() {
                 .arg(Arg::new("create").about("creates bar"))
                 .arg(Arg::new("delete")),
         )
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[test]
@@ -1749,7 +1749,7 @@ fn help_required_and_given_for_subcommand() {
                 .arg(Arg::new("create").about("creates bar"))
                 .arg(Arg::new("delete").about("deletes bar")),
         )
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[test]
@@ -1757,12 +1757,12 @@ fn help_required_and_given() {
     App::new("myapp")
         .setting(AppSettings::HelpRequired)
         .arg(Arg::new("foo").about("It does foo stuff"))
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
 
 #[test]
 fn help_required_and_no_args() {
     App::new("myapp")
         .setting(AppSettings::HelpRequired)
-        .get_matches();
+        .get_matches_from(&["test"]);
 }
