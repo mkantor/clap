@@ -49,7 +49,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                     o,
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
         }
 
@@ -59,10 +59,8 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
         {
             let message = self.p.write_help_err()?;
             return Err(Error {
-                cause: String::new(),
                 message,
                 kind: ErrorKind::MissingArgumentOrSubcommand,
-                info: None,
             });
         }
         self.validate_conflicts(matcher)?;
@@ -91,7 +89,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                 return Err(Error::invalid_utf8(
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
             if !arg.possible_vals.is_empty() {
                 debug!(
@@ -117,12 +115,12 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                         .cloned()
                         .collect();
                     return Err(Error::invalid_value(
-                        val_str,
+                        &val_str,
                         &arg.possible_vals,
                         arg,
                         &*Usage::new(self.p).create_usage_with_title(&*used),
                         self.p.app.color(),
-                    )?);
+                    ));
                 }
             }
             if !arg.is_set(ArgSettings::AllowEmptyValues)
@@ -134,13 +132,13 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                     arg,
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
             if let Some(ref vtor) = arg.validator {
                 debug!("Validator::validate_arg_values: checking validator...");
                 if let Err(e) = vtor(&*val.to_string_lossy()) {
                     debug!("error");
-                    return Err(Error::value_validation(Some(arg), &e, self.p.app.color())?);
+                    return Err(Error::value_validation(Some(arg), e, self.p.app.color()));
                 } else {
                     debug!("good");
                 }
@@ -149,11 +147,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                 debug!("Validator::validate_arg_values: checking validator_os...");
                 if let Err(e) = vtor(val) {
                     debug!("error");
-                    return Err(Error::value_validation(
-                        Some(arg),
-                        &(*e).to_string(),
-                        self.p.app.color(),
-                    )?);
+                    return Err(Error::value_validation(Some(arg), e, self.p.app.color()));
                 } else {
                     debug!("good");
                 }
@@ -172,9 +166,9 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                         return Err(Error::argument_conflict(
                             a,
                             Some(other_arg.to_string()),
-                            &*usg,
+                            usg,
                             self.p.app.color(),
-                        )?);
+                        ));
                     }
                 }
             }
@@ -192,9 +186,9 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
             return Err(Error::argument_conflict(
                 &self.p.app[first],
                 c_with,
-                &*usg,
+                usg,
                 self.p.app.color(),
-            )?);
+            ));
         }
 
         panic!(INTERNAL_ERROR_MSG);
@@ -260,7 +254,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                         c_with,
                         Usage::new(self.p).create_usage_with_title(&[]),
                         self.p.app.color(),
-                    )?);
+                    ));
                 }
             }
         }
@@ -391,7 +385,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                 a,
                 &*Usage::new(self.p).create_usage_with_title(&[]),
                 self.p.app.color(),
-            )?);
+            ));
         }
         Ok(())
     }
@@ -417,7 +411,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                     },
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
         }
         if let Some(num) = a.max_vals {
@@ -434,7 +428,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                     a,
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
         }
         let min_vals_zero = if let Some(num) = a.min_vals {
@@ -447,7 +441,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                     ma.vals.len(),
                     &*Usage::new(self.p).create_usage_with_title(&[]),
                     self.p.app.color(),
-                )?);
+                ));
             }
             num == 0
         } else {
@@ -460,7 +454,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                 a,
                 &*Usage::new(self.p).create_usage_with_title(&[]),
                 self.p.app.color(),
-            )?);
+            ));
         }
         Ok(())
     }
@@ -613,6 +607,6 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
             req_args,
             &*usg.create_usage_with_title(&*used),
             self.p.app.color(),
-        )?)
+        ))
     }
 }

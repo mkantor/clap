@@ -1541,12 +1541,16 @@ impl<'help> App<'help> {
         Help::new(HelpWriter::Normal(w), &p, true).write_help()
     }
 
-    /// Writes the version message to the user to a [`io::Write`] object as if the user ran `-V`.
+    /// Returns the version message rendered as if the user ran `-V`.
     ///
     /// **NOTE:** clap has the ability to distinguish between "short" and "long" version messages
     /// depending on if the user ran [`-V` (short)] or [`--version` (long)]
     ///
-    /// # Examples
+    /// ### Coloring
+    ///
+    /// This function does not try to color the message nor it inserts any [ANSI escape codes].
+    ///
+    /// ### Examples
     ///
     /// ```rust
     /// # use clap::App;
@@ -1558,11 +1562,12 @@ impl<'help> App<'help> {
     /// [`io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
     /// [`-V` (short)]: ./struct.App.html#method.version
     /// [`--version` (long)]: ./struct.App.html#method.long_version
-    pub fn write_version<W: Write>(&self, w: &mut W) -> ClapResult<()> {
-        self._write_version(w, false).map_err(From::from)
+    /// [ANSI escape codes]: https://en.wikipedia.org/wiki/ANSI_escape_code
+    pub fn render_version(&self) -> String {
+        self._render_version(false)
     }
 
-    /// Writes the version message to the user to a [`io::Write`] object
+    /// Returns the version message rendered as if the user ran `--version`.
     ///
     /// **NOTE:** clap has the ability to distinguish between "short" and "long" version messages
     /// depending on if the user ran [`-V` (short)] or [`--version` (long)]
@@ -1579,8 +1584,8 @@ impl<'help> App<'help> {
     /// [`io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
     /// [`-V` (short)]: ./struct.App.html#method.version
     /// [`--version` (long)]: ./struct.App.html#method.long_version
-    pub fn write_long_version<W: Write>(&self, w: &mut W) -> ClapResult<()> {
-        self._write_version(w, true).map_err(From::from)
+    pub fn render_long_version(&self) -> String {
+        self._render_version(true)
     }
 
     /// @TODO-v3-alpha @docs @p2: write docs
@@ -1929,8 +1934,8 @@ impl<'help> App<'help> {
         debug!("App::_do_parse");
         let mut matcher = ArgMatcher::default();
 
-        // If there are global arguments, or settings we need to propgate them down to subcommands
-        // before parsing incase we run into a subcommand
+        // If there are global arguments, or settings we need to propagate them down to subcommands
+        // before parsing in case we run into a subcommand
         if !self.settings.is_set(AppSettings::Built) {
             self._build();
         }
@@ -1952,8 +1957,7 @@ impl<'help> App<'help> {
         Ok(matcher.into_inner())
     }
 
-    // used in clap_generate (https://github.com/clap-rs/clap_generate)
-    #[doc(hidden)]
+    /// Some properties of an `App`
     pub fn _build(&mut self) {
         debug!("App::_build");
 
@@ -1967,12 +1971,9 @@ impl<'help> App<'help> {
         for a in self.args.args.iter_mut() {
             // Fill in the groups
             for g in &a.groups {
-                let mut found = false;
                 if let Some(ag) = self.groups.iter_mut().find(|grp| grp.id == *g) {
                     ag.args.push(a.id.clone());
-                    found = true;
-                }
-                if !found {
+                } else {
                     let mut ag = ArgGroup::with_id(g.clone());
                     ag.args.push(a.id.clone());
                     self.groups.push(ag);
@@ -2449,7 +2450,7 @@ impl<'help> App<'help> {
         }
     }
 
-    pub(crate) fn _write_version<W: Write>(&self, w: &mut W, use_long: bool) -> io::Result<()> {
+    pub(crate) fn _render_version(&self, use_long: bool) -> String {
         debug!("App::_write_version");
 
         let ver = if use_long {
@@ -2462,12 +2463,12 @@ impl<'help> App<'help> {
         if let Some(bn) = self.bin_name.as_ref() {
             if bn.contains(' ') {
                 // In case we're dealing with subcommands i.e. git mv is translated to git-mv
-                writeln!(w, "{} {}", bn.replace(" ", "-"), ver)
+                format!("{} {}\n", bn.replace(" ", "-"), ver)
             } else {
-                writeln!(w, "{} {}", &self.name[..], ver)
+                format!("{} {}\n", &self.name[..], ver)
             }
         } else {
-            writeln!(w, "{} {}", &self.name[..], ver)
+            format!("{} {}\n", &self.name[..], ver)
         }
     }
 
