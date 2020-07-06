@@ -1729,9 +1729,7 @@ impl<'help, 'app> Parser<'help, 'app> {
 
     pub(crate) fn write_help_err(&self) -> ClapResult<Colorizer> {
         let mut c = Colorizer::new(true, self.color_help());
-
         Help::new(HelpWriter::Buffer(&mut c), self, false).write_help()?;
-
         Ok(c)
     }
 
@@ -1745,7 +1743,7 @@ impl<'help, 'app> Parser<'help, 'app> {
         let mut c = Colorizer::new(false, self.color_help());
 
         match Help::new(HelpWriter::Buffer(&mut c), self, use_long).write_help() {
-            Err(e) => e,
+            Err(e) => e.into(),
             _ => ClapError {
                 message: c,
                 kind: ErrorKind::DisplayHelp,
