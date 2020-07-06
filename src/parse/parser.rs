@@ -1756,7 +1756,7 @@ impl<'help, 'app> Parser<'help, 'app> {
         debug!("Parser::version_err");
 
         let msg = self.app._render_version(use_long);
-        let mut c = Colorizer::new(false, ColorChoice::Never);
+        let mut c = Colorizer::new(false, self.color_help());
         c.none(msg);
         ClapError {
             message: c,
