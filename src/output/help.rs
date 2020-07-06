@@ -11,10 +11,7 @@ use std::{
 use crate::{
     build::{App, AppSettings, Arg, ArgSettings},
     output::{fmt::Colorizer, Usage},
-    parse::{
-        errors::{Error, Result as ClapResult},
-        Parser,
-    },
+    parse::Parser,
     util::VecMap,
     INTERNAL_ERROR_MSG,
 };
@@ -664,14 +661,12 @@ impl<'help, 'app, 'parser, 'writer> Help<'help, 'app, 'parser, 'writer> {
     pub(crate) fn write_all_args(&mut self) -> ClapResult<()> {
         debug!("Help::write_all_args");
         let flags = self.parser.has_flags();
-        // FIXME: Strange filter/count vs fold... https://github.com/rust-lang/rust/issues/33038
-        let pos = self.parser.app.get_positionals().fold(0, |acc, arg| {
-            if should_show_arg(self.use_long, arg) {
-                acc + 1
-            } else {
-                acc
-            }
-        }) > 0;
+        let pos = self
+            .parser
+            .app
+            .get_positionals()
+            .filter(|arg| should_show_arg(self.use_long, arg))
+            .any(|_| true);
         let opts = self
             .parser
             .app
@@ -1025,13 +1020,13 @@ impl<'help, 'app, 'parser, 'writer> Help<'help, 'app, 'parser, 'writer> {
                         self.write_args(&*opts_flags)?;
                     }
                     "flags" => {
-                        self.write_args(&*flags!(self.parser.app).collect::<Vec<_>>())?;
+                        self.write_args(&self.parser.app.get_flags_no_heading().collect::<Vec<_>>())?;
                     }
                     "options" => {
-                        self.write_args(&*opts!(self.parser.app).collect::<Vec<_>>())?;
+                        self.write_args(&self.parser.app.get_opts_no_heading().collect::<Vec<_>>())?;
                     }
                     "positionals" => {
-                        self.write_args(&*positionals!(self.parser.app).collect::<Vec<_>>())?;
+                        self.write_args(&self.parser.app.get_positionals().collect::<Vec<_>>())?;
                     }
                     "subcommands" => {
                         self.write_subcommands(self.parser.app)?;
