@@ -766,6 +766,7 @@ impl<'help, 'app> Parser<'help, 'app> {
                 return Err(ClapError {
                     message,
                     kind: ErrorKind::MissingArgumentOrSubcommand,
+                    info: vec![],
                 });
             }
         }
@@ -1747,7 +1748,7 @@ impl<'help, 'app> Parser<'help, 'app> {
             _ => ClapError {
                 message: c,
                 kind: ErrorKind::DisplayHelp,
-                info: None,
+                info: vec![],
             },
         }
     }
@@ -1760,7 +1761,8 @@ impl<'help, 'app> Parser<'help, 'app> {
         c.none(msg);
         ClapError {
             message: c,
-            kind: ErrorKind::VersionDisplayed,
+            kind: ErrorKind::DisplayVersion,
+            info: vec![],
         }
     }
 }

@@ -378,6 +378,9 @@ pub struct Error {
     pub(crate) message: Colorizer,
     /// The type of error
     pub kind: ErrorKind,
+    /// Additional information depending on the error kind, like values and argument names.
+    /// Useful when you want to render an error of your own.
+    pub info: Vec<String>,
 }
 
 impl Display for Error {
@@ -446,9 +449,9 @@ impl Error {
         c.none("' cannot be used with ");
 
         match other {
-            Some(name) => {
+            Some(ref name) => {
                 c.none("'");
-                c.warning(&*name);
+                c.warning(name);
                 c.none("'");
             }
             None => {
@@ -459,9 +462,15 @@ impl Error {
         put_usage(&mut c, usage);
         try_help(&mut c);
 
+        let mut info = vec![arg.to_string()];
+        if let Some(other) = other {
+            info.push(other);
+        }
+
         Error {
             message: c,
             kind: ErrorKind::ArgumentConflict,
+            info,
         }
     }
 
@@ -477,6 +486,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::EmptyValue,
+            info: vec![arg.to_string()],
         }
     }
 
@@ -522,9 +532,13 @@ impl Error {
         put_usage(&mut c, usage);
         try_help(&mut c);
 
+        let mut info = vec![arg.to_string(), bad_val.to_string()];
+        info.extend(sorted);
+
         Error {
             message: c,
             kind: ErrorKind::InvalidValue,
+            info: vec![],
         }
     }
 
@@ -554,6 +568,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::InvalidSubcommand,
+            info: vec![subcmd.to_string()],
         }
     }
 
@@ -570,6 +585,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::UnrecognizedSubcommand,
+            info: vec![subcmd.to_string()],
         }
     }
 
@@ -587,8 +603,8 @@ impl Error {
 
         let mut info = vec![];
         for v in required {
-            c.none("\n    ")?;
-            c.good(&v.to_string())?;
+            c.none("\n    ");
+            c.good(&v.to_string());
             info.push(v.to_string());
         }
 
@@ -598,8 +614,8 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::MissingRequiredArgument,
-            info: Some(info),
-        })
+            info: info,
+        }
     }
 
     pub(crate) fn missing_subcommand(name: &str, usage: &str, color: ColorChoice) -> Self {
@@ -614,6 +630,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::MissingSubcommand,
+            info: vec![],
         }
     }
 
@@ -630,6 +647,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::InvalidUtf8,
+            info: vec![],
         }
     }
 
@@ -647,6 +665,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::TooManyValues,
+            info: vec![arg.to_string(), val.to_string()],
         }
     }
 
@@ -673,19 +692,23 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::TooFewValues,
+            info: vec![arg.to_string(), curr_vals.to_string(), min_vals.to_string()],
         }
     }
 
-    pub(crate) fn value_validation(arg: Option<&Arg>, err: String, color: ColorChoice) -> Self {
+    pub(crate) fn value_validation(
+        arg: String,
+        val: String,
+        err: String,
+        color: ColorChoice,
+    ) -> Self {
         let mut c = Colorizer::new(true, color);
 
         start_error(&mut c, "Invalid value");
 
-        if let Some(a) = arg {
-            c.none(" for '");
-            c.warning(a.name);
-            c.none("'");
-        }
+        c.none(" for '");
+        c.warning(arg.clone());
+        c.none("'");
 
         c.none(format!(": {}", err));
         try_help(&mut c);
@@ -693,12 +716,8 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::ValueValidation,
+            info: vec![arg, val, err],
         }
-    }
-
-    pub(crate) fn value_validation_auto(err: String) -> Self {
-        let n: Option<&Arg> = None;
-        Error::value_validation(n, err, ColorChoice::Auto)
     }
 
     pub(crate) fn wrong_number_of_values(
@@ -724,6 +743,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::WrongNumberOfValues,
+            info: vec![arg.to_string(), curr_vals.to_string(), num_vals.to_string()],
         }
     }
 
@@ -739,6 +759,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::UnexpectedMultipleUsage,
+            info: vec![arg.to_string()],
         }
     }
 
@@ -780,6 +801,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::UnknownArgument,
+            info: vec![arg.to_string()],
         }
     }
 
@@ -794,6 +816,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::ArgumentNotFound,
+            info: vec![arg.to_string()],
         }
     }
 
@@ -806,7 +829,11 @@ impl Error {
 
         start_error(&mut c, description);
 
-        Error { message: c, kind }
+        Error {
+            message: c,
+            kind,
+            info: vec![],
+        }
     }
 }
 

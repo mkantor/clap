@@ -61,6 +61,7 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
             return Err(Error {
                 message,
                 kind: ErrorKind::MissingArgumentOrSubcommand,
+                info: vec![],
             });
         }
         self.validate_conflicts(matcher)?;
@@ -136,9 +137,15 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
             }
             if let Some(ref vtor) = arg.validator {
                 debug!("Validator::validate_arg_values: checking validator...");
-                if let Err(e) = vtor(&*val.to_string_lossy()) {
+                let val: String = val.to_string_lossy().into();
+                if let Err(e) = vtor(&val) {
                     debug!("error");
-                    return Err(Error::value_validation(Some(arg), e, self.p.app.color()));
+                    return Err(Error::value_validation(
+                        arg.to_string(),
+                        val,
+                        e,
+                        self.p.app.color(),
+                    ));
                 } else {
                     debug!("good");
                 }
@@ -147,7 +154,12 @@ impl<'help, 'app, 'parser> Validator<'help, 'app, 'parser> {
                 debug!("Validator::validate_arg_values: checking validator_os...");
                 if let Err(e) = vtor(val) {
                     debug!("error");
-                    return Err(Error::value_validation(Some(arg), e, self.p.app.color()));
+                    return Err(Error::value_validation(
+                        arg.to_string(),
+                        val.to_string_lossy().into(),
+                        e,
+                        self.p.app.color(),
+                    ));
                 } else {
                     debug!("good");
                 }
