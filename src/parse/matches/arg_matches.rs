@@ -345,18 +345,18 @@ impl ArgMatches {
         <R as FromStr>::Err: Display,
     {
         if let Some(v) = self.value_of(name) {
-            v.parse::<R>().or_else(|e| {
+            v.parse::<R>().map_err(|e| {
                 let message = format!(
                     "The argument '{}' isn't a valid value for '{}': {}",
                     v, name, e
                 );
 
-                Err(Error::value_validation(
+                Error::value_validation(
                     name.to_string(),
                     v.to_string(),
                     message,
                     ColorChoice::Auto,
-                ))
+                )
             })
         } else {
             Err(Error::argument_not_found_auto(name))
@@ -438,15 +438,15 @@ impl ArgMatches {
     {
         if let Some(vals) = self.values_of(name) {
             vals.map(|v| {
-                v.parse::<R>().or_else(|e| {
+                v.parse::<R>().map_err(|e| {
                     let message = format!("The argument '{}' isn't a valid value: {}", v, e);
 
-                    Err(Error::value_validation(
+                    Error::value_validation(
                         name.to_string(),
                         v.to_string(),
                         message,
                         ColorChoice::Auto,
-                    ))
+                    )
                 })
             })
             .collect()

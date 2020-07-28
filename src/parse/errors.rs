@@ -614,7 +614,7 @@ impl Error {
         Error {
             message: c,
             kind: ErrorKind::MissingRequiredArgument,
-            info: info,
+            info,
         }
     }
 
