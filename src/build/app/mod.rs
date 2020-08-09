@@ -1952,7 +1952,8 @@ impl<'help> App<'help> {
         Ok(matcher.into_inner())
     }
 
-    /// Some properties of an `App`
+    // used in clap_generate (https://github.com/clap-rs/clap_generate)
+    #[doc(hidden)]
     pub fn _build(&mut self) {
         debug!("App::_build");
 
