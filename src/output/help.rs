@@ -1052,7 +1052,14 @@ impl<'help, 'app, 'parser, 'writer> Help<'help, 'app, 'parser, 'writer> {
                         self.parser.app.after_help
                     };
                     if let Some(output) = after_help {
-                        self.none("\n\n")?;
+                        let flags = self.parser.has_flags();
+                        let pos = self.parser.has_positionals();
+                        let opts = self.parser.has_opts();
+                        let subcmds = self.parser.has_subcommands();
+
+                        if flags || opts || pos || subcmds {
+                            self.none("\n\n")?;
+                        }
                         self.write_before_after_help(output)?;
                     }
                 }
