@@ -7,6 +7,7 @@ use std::process::{Command, Output};
 fn run_example<S: AsRef<str>>(name: S, args: &[&str]) -> Output {
     let mut all_args = vec![
         "run",
+        "--quiet",
         "--example",
         name.as_ref(),
         "--features",
@@ -21,33 +22,67 @@ fn run_example<S: AsRef<str>>(name: S, args: &[&str]) -> Output {
         .expect("failed to run example")
 }
 
-#[test]
-fn examples_are_functional() {
-    let example_paths = fs::read_dir("examples")
+fn examples() -> impl Iterator<Item = String> {
+    fs::read_dir("examples")
         .expect("couldn't read examples directory")
         .map(|result| result.expect("couldn't get directory entry").path())
-        .filter(|path| path.is_file() && path.extension().and_then(OsStr::to_str) == Some("rs"));
+        .filter(|path| path.is_file() && path.extension().and_then(OsStr::to_str) == Some("rs"))
+        .flat_map(|path| path.file_stem().and_then(OsStr::to_str).map(String::from))
+}
 
-    let mut example_count = 0;
-    for path in example_paths {
-        example_count += 1;
-
-        let example_name = path
-            .file_stem()
-            .and_then(OsStr::to_str)
-            .expect("unable to determine example name");
-
-        let help_output = run_example(example_name, &["--help"]);
-        assert!(
-            help_output.status.success(),
-            "{} --help exited with nonzero",
-            example_name,
-        );
-        assert!(
-            !help_output.stdout.is_empty(),
-            "{} --help had no output",
-            example_name,
-        );
+#[test]
+fn long_help() {
+    for example in examples() {
+        let output = run_example(&example, &["--help"]);
+        assert!(output.status.success());
+        assert!(!output.stdout.is_empty());
     }
-    assert!(example_count > 0);
+}
+
+#[test]
+fn short_help() {
+    for example in examples() {
+        let output = run_example(&example, &["-h"]);
+        assert!(output.status.success());
+        assert!(!output.stdout.is_empty());
+    }
+}
+
+#[test]
+fn long_version() {
+    for example in examples() {
+        let output = run_example(&example, &["--version"]);
+        assert!(output.status.success());
+        assert!(!output.stdout.is_empty());
+    }
+}
+
+#[test]
+fn short_version() {
+    for example in examples() {
+        let output = run_example(&example, &["-V"]);
+        assert!(output.status.success());
+        assert!(!output.stdout.is_empty());
+    }
+}
+
+#[test]
+fn invalid_arguments() {
+    for example in examples() {
+        let output = run_example(
+            &example,
+            &[
+                "these",
+                "arguments",
+                "are",
+                "not",
+                "valid",
+                "for",
+                "any",
+                "example",
+            ],
+        );
+        assert!(!output.status.success());
+        assert!(!output.stderr.is_empty());
+    }
 }
