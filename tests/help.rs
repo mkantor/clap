@@ -2383,13 +2383,6 @@ fn wrapping_items_on_same_line() {
         .version("v12.34.56")
         .term_width(35);
 
-    let (help, _) = utils::capture_output(app.clone(), "ctest --help");
-    let line_that_is_too_wide = help.lines().find(|line| line.len() > 35);
-    assert!(
-        line_that_is_too_wide.is_none(),
-        "One or more lines were wider than the terminal"
-    );
-
     assert!(utils::compare_output(
         app,
         "ctest --help",
@@ -2419,13 +2412,6 @@ fn wrapping_templates() {
         )
         .help_template("START                  {about}                  END")
         .term_width(35);
-
-    let (help, _) = utils::capture_output(app.clone(), "ctest --help");
-    let line_that_is_too_wide = help.lines().find(|line| line.len() > 35);
-    assert!(
-        line_that_is_too_wide.is_none(),
-        "One or more lines were wider than the terminal"
-    );
 
     assert!(utils::compare_output(
         app,
